@@ -1,0 +1,70 @@
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: calc(var(--nav-h) + 40px) 24px 80px;
+  position: relative; text-align: center; overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(88,166,255,.15) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(63,185,80,.08) 0%, transparent 60%);
+}
+
+.hero > * { position: relative; z-index: 1; }
+.hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
+
+.hero-greeting {
+  font-size: .95rem; color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 12px; letter-spacing: .5px;
+}
+
+.hero-name {
+  font-size: clamp(2.8rem, 7vw, 5rem);
+  font-weight: 700; line-height: 1.1;
+  background: linear-gradient(135deg, #e6edf3, #8b949e);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-bottom: 16px;
+}
+
+.hero-typed {
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  color: var(--muted); font-family: 'JetBrains Mono', monospace;
+  height: 2.2rem; margin-bottom: 24px;
+  display: flex; align-items: center; gap: 2px;
+}
+
+.cursor {
+  color: var(--accent);
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.hero-desc {
+  max-width: 520px; color: var(--muted);
+  font-size: .98rem; margin-bottom: 36px; line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 40px;
+}
+
+.hero-socials { display: flex; gap: 20px; justify-content: center; }
+.hero-socials a {
+  color: var(--muted); font-size: 1.4rem;
+  transition: color var(--ease), transform var(--ease);
+}
+.hero-socials a:hover { color: var(--accent); transform: translateY(-3px); }
+
+.scroll-down {
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  color: var(--muted); font-size: 1.1rem; display: inline-block;
+}
+
+@media (max-width: 480px) {
+  .hero-actions { flex-direction: column; align-items: center; }
+}
