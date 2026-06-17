@@ -73,7 +73,7 @@ export default function Hero() {
         </motion.div>
 
         <motion.p className="hero-desc" variants={fadeUp}>
-          Yapı Kredi Teknoloji'de Full-Stack Software Engineer.
+          Fintech dünyasında Full-Stack Software Engineer.
           React &amp; TypeScript ile kullanıcı deneyimi, Java &amp; Spring Boot ile sağlam backend sistemleri inşa ediyorum.
         </motion.p>
 
