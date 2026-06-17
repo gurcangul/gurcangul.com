@@ -1,5 +1,153 @@
 export const BLOG_POSTS = [
   {
+    id: 'timeline-planner',
+    title: 'React ile Drag-and-Drop Gantt Chart: Timeline Planner',
+    date: '2026-06-17',
+    tags: ['React', 'TypeScript', 'Proje'],
+    summary: 'Banka iç denetim ekipleri için haftalık saha planlama aracı. React 18 + TypeScript ile drag-to-select, otomatik çakışma çözümü (cascade) ve Excel export içeren bir Gantt chart nasıl inşa edilir?',
+    project: 'timeline-planner',
+    projectUrl: 'https://github.com/gurcangul/timeline-planner',
+    content: `
+## Proje Nedir?
+
+Banka iç denetim ekiplerinin haftalık saha planlamasını yönetmek için geliştirdiğim bir web uygulaması. Denetçiler sol kolonda sabit kalır, günler yatayda kaydırılır. Görevler sürükle-bırak ile atanır.
+
+**Teknoloji:** React 18, TypeScript, Vite 5, TanStack React Query 5, SheetJS (Excel export), Vitest
+
+## Slot Modeli
+
+Planlamayı kolaylaştırmak için zamanı "slot" birimine çevirdim:
+
+\`\`\`
+1 gün = 2 slot (sabah + öğleden sonra)
+\`\`\`
+
+Bu sayede yarım günlük atamalar da sorunsuz çalışıyor. Tüm hesaplamalar slot indeksleri üzerinden yapılıyor:
+
+\`\`\`typescript
+const DAY_TO_SLOTS = 2;
+
+function dateRangeToSlots(start: Date, end: Date): number {
+  const days = differenceInDays(end, start) + 1;
+  return days * DAY_TO_SLOTS;
+}
+
+function slotToDate(weekStart: Date, slotIndex: number): Date {
+  const dayOffset = Math.floor(slotIndex / DAY_TO_SLOTS);
+  return addDays(weekStart, dayOffset);
+}
+\`\`\`
+
+## Push Engine: Cascade Çakışma Çözümü
+
+En ilginç kısım bu. Bir görevi taşıdığında veya boyutlandırdığında, üst üste binen görevler otomatik olarak öteleniyor. Buna "cascade" (şelale) mantığı dedim.
+
+\`\`\`typescript
+// PushEngine.ts
+function cascadeResolve(
+  assignments: Assignment[],
+  movedId: string,
+  newSlot: number
+): Assignment[] {
+  const sorted = [...assignments].sort((a, b) => a.startSlot - b.startSlot);
+  const result: Assignment[] = [];
+
+  for (const item of sorted) {
+    if (item.id === movedId) {
+      result.push({ ...item, startSlot: newSlot });
+      continue;
+    }
+
+    // Önceki görevle çakışıyor mu?
+    const prev = result.findLast(r => r.auditorId === item.auditorId);
+    if (prev && overlaps(prev, item)) {
+      // Çakışanı, öncekinin bitişinden itibaren kaydır
+      result.push({ ...item, startSlot: prev.startSlot + prev.duration });
+    } else {
+      result.push(item);
+    }
+  }
+
+  return result;
+}
+
+function overlaps(a: Assignment, b: Assignment): boolean {
+  return a.startSlot < b.startSlot + b.duration &&
+         b.startSlot < a.startSlot + a.duration;
+}
+\`\`\`
+
+### Pinned Görevler
+
+İzin ve sağlık raporu gibi sabit görevler cascade'den etkilenmiyor. \`isPinned: true\` bayrağı taşıyanlar yerlerinde kalıyor, diğer görevler onların etrafında yeniden düzenleniyor.
+
+## Drag-to-Select
+
+Tek tıkla atama yerine, fare ile birden fazla slotu seçip tek hamlede görev oluşturabilirsin. Sürükleme sırasında otomatik scroll da var:
+
+\`\`\`typescript
+function useAutoScroll(containerRef: RefObject<HTMLDivElement>, isDragging: boolean) {
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handle = (e: MouseEvent) => {
+      const container = containerRef.current;
+      if (!container) return;
+      const { left, right } = container.getBoundingClientRect();
+      const THRESHOLD = 60;
+      const SPEED = 8;
+
+      if (e.clientX < left + THRESHOLD)  container.scrollLeft -= SPEED;
+      if (e.clientX > right - THRESHOLD) container.scrollLeft += SPEED;
+    };
+
+    window.addEventListener('mousemove', handle);
+    return () => window.removeEventListener('mousemove', handle);
+  }, [isDragging]);
+}
+\`\`\`
+
+## Excel Export
+
+Haftalık plan tek tıkla \`.xlsx\` olarak indirilebiliyor. SheetJS ile:
+
+\`\`\`typescript
+import * as XLSX from 'xlsx';
+
+export function exportWeekToExcel(week: WeekData) {
+  const rows = week.auditors.map(auditor => ({
+    Denetçi: auditor.name,
+    ...week.days.reduce((acc, day) => {
+      const assignment = week.assignments.find(
+        a => a.auditorId === auditor.id && isSameDay(a.date, day)
+      );
+      acc[format(day, 'dd.MM')] = assignment?.task ?? '';
+      return acc;
+    }, {} as Record<string, string>),
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Haftalık Plan');
+  XLSX.writeFile(wb, \`plan-\${format(week.startDate, 'yyyy-MM-dd')}.xlsx\`);
+}
+\`\`\`
+
+## Mimari Özet
+
+\`\`\`
+src/
+├── components/   → GanttGrid, AuditorRow, AssignmentCell, StatsPanel
+├── hooks/        → useDragSelect, useAutoScroll, useWeekNav
+├── engine/       → PushEngine.ts (cascade logic)
+├── services/     → api.ts (backend-ready, şimdilik mock)
+└── utils/        → dateUtils.ts, slotUtils.ts
+\`\`\`
+
+Backend entegrasyonu için Spring Boot scaffold hazır; \`api.ts\` içindeki mock'lar gerçek endpoint'lerle değiştirildiğinde sistem ayağa kalkıyor.
+    `
+  },
+  {
     id: 'mediator-pattern',
     title: 'Mediator Pattern: Nesneleri Birbirinden Ayırmak',
     date: '2025-12-01',

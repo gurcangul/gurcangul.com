@@ -42,17 +42,12 @@ export default function About() {
           >
             <motion.p variants={fadeUp}>
               İzmir Yüksek Teknoloji Enstitüsü Bilgisayar Mühendisliği mezunuyum.
-              Şu an <strong>Yapı Kredi Teknoloji</strong>'de Full-Stack Software Engineer olarak çalışıyorum.
+              Fintech dünyasında Full-Stack Software Engineer olarak çalışıyorum.
             </motion.p>
             <motion.p variants={fadeUp}>
               Frontend'de <strong>React</strong>, <strong>TypeScript</strong> ve modern UI kütüphaneleriyle
               kullanıcı odaklı arayüzler geliştiriyorum. Backend'de <strong>Java</strong> ve{' '}
               <strong>Spring Boot</strong> ile ölçeklenebilir REST API'ler ve mikroservisler inşa ediyorum.
-            </motion.p>
-            <motion.p variants={fadeUp}>
-              JotForm'da React/Redux ile Gantt Chart, Trampax'ta React Native ile mobil uygulama,
-              TEB'de TypeScript/React ile kurumsal internet bankacılığı geliştirdim.
-              Full-stack söz konusu olduğunda hem UI tasarımını hem de servis katmanını uçtan uca yazabilirim.
             </motion.p>
 
             <motion.div className="about-stats" variants={fadeUp}>
