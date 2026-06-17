@@ -1,13 +1,24 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './Skills.css';
 
+const CATEGORIES = ['Tümü', 'Frontend', 'Backend', 'DevOps & Araçlar'];
+
 const SKILLS = [
-  { icon: 'fab fa-java',          color: '#b07219', title: 'Java',           desc: 'Java 17, OOP, Collections, Stream API' },
-  { icon: 'spring',               color: '#6db33f', title: 'Spring Boot',    desc: 'REST API, JPA, Security, Actuator' },
-  { icon: 'fas fa-database',      color: '#58a6ff', title: 'Veritabanı',     desc: 'Oracle, H2, Hibernate ORM, JPA' },
-  { icon: 'fab fa-git-alt',       color: '#f05030', title: 'Git & DevOps',   desc: 'Git, GitHub, Docker, Maven' },
-  { icon: 'fas fa-shield-halved', color: '#3fb950', title: 'Güvenlik & API', desc: 'Spring Security, JWT, OpenAPI/Swagger' },
-  { icon: 'fas fa-vial',          color: '#bc8cff', title: 'Test',           desc: 'JUnit 5, Mockito, Spring Test' },
+  // Frontend
+  { icon: 'fab fa-react',       color: '#61dafb', title: 'React',           desc: 'React 18, Hooks, Context, Redux, React Native', cat: 'Frontend' },
+  { icon: 'fab fa-js-square',   color: '#f0db4f', title: 'TypeScript / JS', desc: 'TypeScript, ES2022+, async/await, DOM API',     cat: 'Frontend' },
+  { icon: 'fas fa-palette',     color: '#cc6699', title: 'UI & Styling',    desc: 'Material UI, Ant Design, Framer Motion, CSS',   cat: 'Frontend' },
+
+  // Backend
+  { icon: 'fab fa-java',        color: '#b07219', title: 'Java',            desc: 'Java 17, OOP, Collections, Stream API',         cat: 'Backend'  },
+  { icon: 'spring',             color: '#6db33f', title: 'Spring Boot',     desc: 'REST API, JPA, Security, Microservices',        cat: 'Backend'  },
+  { icon: 'fas fa-database',    color: '#58a6ff', title: 'Veritabanı',      desc: 'Oracle, SQL, PL/SQL, Hibernate ORM, H2',        cat: 'Backend'  },
+
+  // DevOps & Araçlar
+  { icon: 'fab fa-git-alt',     color: '#f05030', title: 'Git & CI/CD',     desc: 'Git, GitHub, Jenkins, Docker, Gradle',          cat: 'DevOps & Araçlar' },
+  { icon: 'fas fa-vial',        color: '#bc8cff', title: 'Test',            desc: 'JUnit 5, Mockito, SonarQube, Postman',          cat: 'DevOps & Araçlar' },
+  { icon: 'fas fa-shield-halved', color: '#3fb950', title: 'Güvenlik & API', desc: 'Spring Security, JWT, OpenAPI/Swagger',         cat: 'DevOps & Araçlar' },
 ];
 
 function SpringIcon({ color }) {
@@ -19,6 +30,10 @@ function SpringIcon({ color }) {
 }
 
 export default function Skills() {
+  const [active, setActive] = useState('Tümü');
+
+  const filtered = active === 'Tümü' ? SKILLS : SKILLS.filter(s => s.cat === active);
+
   return (
     <section id="skills">
       <div className="container">
@@ -31,26 +46,42 @@ export default function Skills() {
           Beceriler
         </motion.h2>
 
-        <div className="skills-grid">
-          {SKILLS.map(({ icon, color, title, desc }, i) => (
-            <motion.div
-              key={title}
-              className="skill-card"
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.07 }}
-              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+        <div className="skills-filters">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              className={`filter-btn ${active === cat ? 'active' : ''}`}
+              onClick={() => setActive(cat)}
             >
-              <div className="skill-icon">
-                {icon === 'spring'
-                  ? <SpringIcon color={color} />
-                  : <i className={icon} style={{ color }} />}
-              </div>
-              <h3>{title}</h3>
-              <p>{desc}</p>
-            </motion.div>
+              {cat}
+            </button>
           ))}
+        </div>
+
+        <div className="skills-grid">
+          <AnimatePresence mode="popLayout">
+            {filtered.map(({ icon, color, title, desc, cat }, i) => (
+              <motion.div
+                key={title}
+                className="skill-card"
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ delay: i * 0.05 }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              >
+                <div className="skill-icon">
+                  {icon === 'spring'
+                    ? <SpringIcon color={color} />
+                    : <i className={icon} style={{ color }} />}
+                </div>
+                <span className="skill-cat-badge">{cat}</span>
+                <h3>{title}</h3>
+                <p>{desc}</p>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
     </section>

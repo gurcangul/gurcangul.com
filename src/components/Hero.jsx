@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import './Hero.css';
 
 const TITLES = [
+  'Full-Stack Developer',
+  'React & Spring Boot',
+  'TypeScript / Java',
   'Software Engineer',
-  'Backend Developer',
-  'Java Enthusiast',
-  'Spring Boot Developer',
 ];
 
 function useTyped(titles, typingSpeed = 110, deletingSpeed = 60, pauseMs = 1800) {
@@ -73,14 +73,14 @@ export default function Hero() {
         </motion.div>
 
         <motion.p className="hero-desc" variants={fadeUp}>
-          Yazılım geliştirme tutkunu bir bilgisayar mühendisi.
-          Java &amp; Spring Boot ekosistemi ile backend sistemler inşa ediyorum.
+          Yapı Kredi Teknoloji'de Full-Stack Software Engineer.
+          React &amp; TypeScript ile kullanıcı deneyimi, Java &amp; Spring Boot ile sağlam backend sistemleri inşa ediyorum.
         </motion.p>
 
         <motion.div className="hero-actions" variants={fadeUp}>
           <a href="#projects" className="btn btn-primary">Projelerimi Gör</a>
           <a
-            href="https://gurcangul.com/Gurcan-Gul-2025-12-Resume.pdf"
+            href="https://gurcangul.com/Gurcan-Gul-2026-01-Resume.pdf"
             target="_blank" rel="noopener"
             className="btn btn-outline"
           >

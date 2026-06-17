@@ -41,20 +41,25 @@ export default function About() {
             variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
           >
             <motion.p variants={fadeUp}>
-              Bilgisayar Mühendisiyim. Backend sistemler, REST API'ler ve kurumsal uygulamalar
-              geliştirmeye odaklanıyorum. <strong>Java</strong> ve <strong>Spring Boot</strong> ekosistemi
-              benim ana çalışma alanım.
+              İzmir Yüksek Teknoloji Enstitüsü Bilgisayar Mühendisliği mezunuyum.
+              Şu an <strong>Yapı Kredi Teknoloji</strong>'de Full-Stack Software Engineer olarak çalışıyorum.
             </motion.p>
             <motion.p variants={fadeUp}>
-              Yazılımı sadece bir meslek olarak değil, sürekli öğrenilen bir zanaat olarak görüyorum.
-              Temiz kod, iyi tasarım ve test edilebilir mimari benim için vazgeçilmez.
+              Frontend'de <strong>React</strong>, <strong>TypeScript</strong> ve modern UI kütüphaneleriyle
+              kullanıcı odaklı arayüzler geliştiriyorum. Backend'de <strong>Java</strong> ve{' '}
+              <strong>Spring Boot</strong> ile ölçeklenebilir REST API'ler ve mikroservisler inşa ediyorum.
+            </motion.p>
+            <motion.p variants={fadeUp}>
+              JotForm'da React/Redux ile Gantt Chart, Trampax'ta React Native ile mobil uygulama,
+              TEB'de TypeScript/React ile kurumsal internet bankacılığı geliştirdim.
+              Full-stack söz konusu olduğunda hem UI tasarımını hem de servis katmanını uçtan uca yazabilirim.
             </motion.p>
 
             <motion.div className="about-stats" variants={fadeUp}>
               {[
+                { value: '4+',                  label: 'Yıl Deneyim' },
                 { value: stats.repoCount || '—', label: 'GitHub Repo' },
-                { value: stats.stars     || '—', label: 'Toplam Yıldız' },
-                { value: stats.languages || '—', label: 'Dil / Teknoloji' },
+                { value: stats.languages || '—', label: 'Teknoloji' },
               ].map(({ value, label }) => (
                 <div className="stat" key={label}>
                   <span className="stat-num">{value}</span>
