@@ -1,0 +1,88 @@
+/* ── Notes sayfasına özgü sıcak palet ──────────────────────── */
+.notes-page {
+  min-height: 100vh;
+  padding: calc(var(--nav-h) + 60px) 0 100px;
+  background: var(--bg);
+}
+
+/* Başlık */
+.notes-header { text-align: center; margin-bottom: 44px; }
+.notes-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  color: #6abf6a; font-size: .82rem;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.notes-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700; margin-bottom: 14px;
+  background: linear-gradient(135deg, #e6edf3, #8b949e);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.notes-subtitle { color: var(--muted); font-size: .98rem; }
+
+/* Sekmeler */
+.notes-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 40px;
+}
+.notes-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 18px; border-radius: 20px; font-size: .85rem;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; transition: all var(--ease);
+}
+.notes-tab:hover  { color: var(--text); border-color: #4caf73; }
+.notes-tab.active { background: rgba(76,175,115,.15); border-color: #4caf73; color: #4caf73; font-weight: 500; }
+
+/* Kart grid */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* Kart */
+.note-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+.note-card:hover { border-color: #4caf73; box-shadow: 0 8px 32px rgba(76,175,115,.08); }
+
+.note-card-link { display: block; text-decoration: none; color: inherit; }
+
+.note-cat-stripe { height: 3px; width: 100%; }
+
+.note-card-body { padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+
+.note-cat-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .72rem; padding: 3px 10px; border-radius: 12px;
+  font-weight: 500; width: fit-content;
+}
+
+.note-card-title {
+  font-size: 1.05rem; font-weight: 600; line-height: 1.4;
+  color: var(--text);
+}
+.note-card:hover .note-card-title { color: #4caf73; }
+
+.note-card-summary {
+  font-size: .85rem; color: var(--muted); line-height: 1.7; flex: 1;
+}
+
+.note-card-footer {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  font-size: .78rem; color: var(--muted);
+  padding-top: 12px; border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+.note-card-footer span { display: flex; align-items: center; gap: 5px; }
+.note-read-more {
+  margin-left: auto; color: #4caf73; font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+  transition: gap var(--ease);
+}
+.note-card:hover .note-read-more { gap: 10px; }

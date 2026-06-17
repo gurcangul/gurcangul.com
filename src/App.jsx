@@ -6,8 +6,10 @@ import Skills   from './components/Skills';
 import Projects from './components/Projects';
 import Contact  from './components/Contact';
 import Footer   from './components/Footer';
-import BlogList from './pages/BlogList';
-import BlogPost from './pages/BlogPost';
+import BlogList  from './pages/BlogList';
+import BlogPost  from './pages/BlogPost';
+import NotesList from './pages/NotesList';
+import NotePost  from './pages/NotePost';
 
 function Home() {
   return (
@@ -28,9 +30,11 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/"          element={<Home />} />
-          <Route path="/blog"      element={<BlogList />} />
-          <Route path="/blog/:id"  element={<BlogPost />} />
-          <Route path="*"          element={<Home />} />
+          <Route path="/blog"       element={<BlogList />} />
+          <Route path="/blog/:id"   element={<BlogPost />} />
+          <Route path="/notes"      element={<NotesList />} />
+          <Route path="/notes/:id"  element={<NotePost />} />
+          <Route path="*"           element={<Home />} />
         </Routes>
       </main>
       <Footer />

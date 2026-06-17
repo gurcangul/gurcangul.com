@@ -9,6 +9,7 @@ const HOME_LINKS = [
   { href: '#projects', label: 'Projeler', anchor: true },
   { href: '#contact',  label: 'İletişim', anchor: true },
   { href: '/blog',     label: 'Blog',     anchor: false },
+  { href: '/notes',    label: 'Notlar',   anchor: false },
 ];
 
 export default function Navbar() {
