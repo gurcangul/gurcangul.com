@@ -22,7 +22,7 @@
 
 .nav-links { list-style: none; display: flex; gap: 32px; }
 .nav-links a { color: var(--muted); font-size: .9rem; transition: color var(--ease); }
-.nav-links a:hover { color: var(--text); }
+.nav-links a:hover, .nav-links a.active { color: var(--text); }
 
 .nav-toggle {
   display: none; flex-direction: column; gap: 5px;
