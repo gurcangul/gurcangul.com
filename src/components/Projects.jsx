@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGitHub } from '../hooks/useGitHub';
 import './Projects.css';
 
 const FILTERS = ['Tümü', 'Java', 'JavaScript', 'Python', 'Diğer'];
+const PER_PAGE = 6;
 
 function RepoCard({ repo, langColors }) {
   const lang  = repo.language || '';
@@ -61,6 +62,7 @@ function RepoCard({ repo, langColors }) {
 export default function Projects() {
   const { repos, loading, error, langColors } = useGitHub('gurcangul');
   const [active, setActive] = useState('Tümü');
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     if (active === 'Tümü') return repos;
@@ -70,6 +72,19 @@ export default function Projects() {
       return key === active;
     });
   }, [repos, active]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+
+  // Filtre değişince veya liste küçülünce geçerli bir sayfada kal.
+  useEffect(() => { setPage(1); }, [active]);
+
+  const current = Math.min(page, pageCount);
+  const paged = filtered.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+
+  const goTo = (n) => {
+    setPage(Math.min(pageCount, Math.max(1, n)));
+    document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <section id="projects" className="projects-section">
@@ -116,11 +131,44 @@ export default function Projects() {
         {!loading && !error && (
           <motion.div className="projects-grid" layout>
             <AnimatePresence mode="popLayout">
-              {filtered.map(repo => (
+              {paged.map(repo => (
                 <RepoCard key={repo.id} repo={repo} langColors={langColors} />
               ))}
             </AnimatePresence>
           </motion.div>
+        )}
+
+        {!loading && !error && pageCount > 1 && (
+          <div className="projects-pagination" role="navigation" aria-label="Proje sayfaları">
+            <button
+              className="page-btn"
+              onClick={() => goTo(current - 1)}
+              disabled={current === 1}
+              aria-label="Önceki sayfa"
+            >
+              <i className="fas fa-chevron-left" />
+            </button>
+
+            {Array.from({ length: pageCount }, (_, i) => i + 1).map(n => (
+              <button
+                key={n}
+                className={`page-btn ${current === n ? 'active' : ''}`}
+                onClick={() => goTo(n)}
+                aria-current={current === n ? 'page' : undefined}
+              >
+                {n}
+              </button>
+            ))}
+
+            <button
+              className="page-btn"
+              onClick={() => goTo(current + 1)}
+              disabled={current === pageCount}
+              aria-label="Sonraki sayfa"
+            >
+              <i className="fas fa-chevron-right" />
+            </button>
+          </div>
         )}
 
         <div className="projects-footer">

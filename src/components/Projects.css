@@ -65,4 +65,22 @@
 .repo-meta { display: flex; align-items: center; gap: 4px; }
 .repo-date { margin-left: auto; font-size: .75rem; }
 
+.projects-pagination {
+  display: flex; justify-content: center; align-items: center;
+  gap: 8px; margin-top: 40px; flex-wrap: wrap;
+}
+.page-btn {
+  min-width: 38px; height: 38px; padding: 0 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 10px; background: var(--bg3); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; font-size: .85rem;
+  transition: all var(--ease);
+}
+.page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+.page-btn.active {
+  background: var(--accent); border-color: var(--accent);
+  color: #0d1117; font-weight: 600;
+}
+.page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
 .projects-footer { text-align: center; margin-top: 48px; }
