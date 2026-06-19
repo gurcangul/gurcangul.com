@@ -643,4 +643,267 @@ Artık mevcut kodu değiştirmiyorsun — sadece yeni bir \`ReportExporter\` sı
 | Okunabilirlik | Karmaşıklaşır | Her sınıf tek amaca odaklı |
     `
   },
+  {
+    id: "chain-of-responsibility-pattern",
+    title: "Chain of Responsibility: Ödeme Doğrulama Hattı",
+    date: "2026-01-19",
+    tags: ["Design Patterns", "Java", "Spring Boot", "Fintech"],
+    summary: "Bir ödeme onaylanmadan önce limit, bakiye, KYC ve fraud kontrollerinden sırayla geçmeli. İç içe if/else yerine Chain of Responsibility ile kurulan bir doğrulama hattını payment-engine projesinden inceliyoruz.",
+    project: 'payment-engine',
+    projectUrl: 'https://github.com/gurcangul/payment-engine',
+    content: `
+## Problem
+
+Bir ödeme onaylanmadan önce sırayla birçok kuraldan geçmeli: limit kontrolü, bakiye yeterliliği, KYC uyumu, fraud (dolandırıcılık) skoru... Bunları tek bir metotta iç içe \`if/else\` ile yazarsan:
+
+- Metot okunamaz hale gelir
+- Yeni bir kural eklemek mevcut kodu değiştirmeyi gerektirir (Open/Closed ihlali)
+- Kuralların sırasını değiştirmek riskli olur
+
+## Çözüm: Chain of Responsibility
+
+Her kuralı ayrı bir "halka" (handler) yap. Her halka tek bir kontrolü bilir ve sonucu bir sonrakine devreder. Bir halka isteği reddederse zincir orada kırılır.
+
+\`payment-engine\` projesinde doğrulama hattı tam olarak böyle kurulu.
+
+## Handler Tabanı
+
+Akışın mantığı (sıradakine devret / zinciri kır) tek bir yerde, taban sınıfta toplanır:
+
+\`\`\`java
+public abstract class PaymentValidator {
+
+    private PaymentValidator next;
+
+    public PaymentValidator setNext(PaymentValidator next) {
+        this.next = next;
+        return next; // zincirlemeyi kolaylaştırır
+    }
+
+    public final ValidationResult validate(Payment payment) {
+        ValidationResult result = check(payment);
+        if (!result.passed()) {
+            return result;                  // başarısız -> zincir burada durur
+        }
+        if (next != null) {
+            return next.validate(payment);  // başarılı -> sıradaki halkaya devret
+        }
+        return ValidationResult.ok();       // zincirin sonu, hepsi geçti
+    }
+
+    // Somut doğrulayıcının tek sorumluluğu: kendi kontrolü
+    protected abstract ValidationResult check(Payment payment);
+}
+\`\`\`
+
+## Somut Halkalar
+
+Her doğrulayıcı sadece kendi işine bakar — diğer halkalardan ve sıradan habersizdir:
+
+\`\`\`java
+@Component
+public class BalanceValidator extends PaymentValidator {
+
+    private final CustomerRepository customers;
+
+    public BalanceValidator(CustomerRepository customers) {
+        this.customers = customers;
+    }
+
+    @Override
+    protected ValidationResult check(Payment payment) {
+        var customer = customers.findById(payment.getCustomerId());
+        if (customer.isEmpty()) {
+            return ValidationResult.fail("CUSTOMER_NOT_FOUND", "Müşteri bulunamadı");
+        }
+        if (customer.get().balance().compareTo(payment.getAmount()) < 0) {
+            return ValidationResult.fail("INSUFFICIENT_BALANCE", "Yetersiz bakiye");
+        }
+        return ValidationResult.ok();
+    }
+}
+\`\`\`
+
+## Zinciri Kurmak
+
+Sıralama tek bir yerde tanımlı — akışı değiştirmek demek bu sırayı değiştirmek demek:
+
+\`\`\`java
+@Configuration
+public class ValidationChainConfig {
+
+    @Bean
+    public PaymentValidator validationChain(LimitValidator limit,
+                                            BalanceValidator balance,
+                                            KycValidator kyc,
+                                            FraudValidator fraud) {
+        limit.setNext(balance).setNext(kyc).setNext(fraud);
+        return limit; // zincirin başı
+    }
+}
+\`\`\`
+
+Spring tüm doğrulayıcıları \`@Component\` olarak yönetir; config sınıfı onları sıraya dizip tek bir \`PaymentValidator\` bean'i (zincirin başı) üretir. Servis sadece bu başı çağırır ve sonucu State makinesine bağlar:
+
+\`\`\`java
+ValidationResult result = validationChain.validate(payment);
+if (!result.passed()) {
+    payment.fail(result.message());   // State: PENDING -> FAILED
+    throw new PaymentValidationException(result);
+}
+payment.authorize();                  // State: PENDING -> AUTHORIZED
+\`\`\`
+
+## Yeni Kural Eklemek
+
+Diyelim ki "günlük işlem adedi limiti" eklemek istiyorsun. Mevcut hiçbir sınıfa dokunmazsın:
+
+- \`VelocityValidator extends PaymentValidator\` sınıfını yaz
+- \`@Component\` ile işaretle
+- \`ValidationChainConfig\`'te zincirdeki sırasına ekle
+
+## Özet
+
+| Soru | Cevap |
+|------|-------|
+| **Sorun** | Çok sayıda sıralı kural, iç içe if/else |
+| **Çözüm** | Her kural ayrı bir halka, sırayla devreden zincir |
+| **Avantaj** | Open/Closed, tek sorumluluk, sıra tek yerde tanımlı |
+| **Dezavantaj** | İstek zincirin sonuna kadar gezebilir; debug için akış takibi gerekir |
+
+Bu deseni Servlet \`Filter\` zincirinde, Spring Security filter chain'inde ve hemen her ödeme/risk motorunda görürsün.
+`
+  },
+  {
+    id: "state-pattern",
+    title: "State Pattern: Ödeme Durum Makinesi",
+    date: "2026-01-26",
+    tags: ["Design Patterns", "Java", "Spring Boot", "Fintech"],
+    summary: "Bir ödeme PENDING, AUTHORIZED, CAPTURED, SETTLED, REFUNDED durumları arasında geçer ama her geçiş geçerli değildir. switch(status) bloklari yerine State pattern ile geçersiz geçişleri tasarım engeller.",
+    project: 'payment-engine',
+    projectUrl: 'https://github.com/gurcangul/payment-engine',
+    content: `
+## Gerçek Dünya Analogu
+
+Bir ödeme, yaşam döngüsü boyunca belirli durumlardan geçer: yetkilendirildi, tahsil edildi, mutabakat yapıldı, iade edildi. Ama her geçiş geçerli değildir — mutabakatı tamamlanmış (SETTLED) bir ödemeyi yeniden "tahsil et" diyemezsin.
+
+## Problem
+
+Durumu bir \`enum\` ile tutup her işlemde kontrol edersen, kod \`switch(status)\` bloklarıyla dolar:
+
+\`\`\`java
+public void capture(Payment p) {
+    switch (p.getStatus()) {
+        case AUTHORIZED -> p.setStatus(CAPTURED);
+        case PENDING    -> throw new IllegalStateException("önce yetkilendir");
+        case SETTLED    -> throw new IllegalStateException("zaten tahsil edildi");
+        // ... ve aynı switch capture, settle, refund metotlarında tekrar eder
+    }
+}
+\`\`\`
+
+Yeni bir durum eklediğinde \`capture\`, \`settle\`, \`refund\`... hepsindeki switch'i güncellemen gerekir. Bir geçişi kolayca unutursun.
+
+## Çözüm: State Pattern
+
+Her durumu ayrı bir sınıf yap. Her durum, o durumdayken hangi geçişlerin geçerli olduğunu kendisi bilir. Ödeme (context) işi o anki duruma devreder.
+
+## Arayüz ve Akıllı Taban
+
+\`\`\`java
+public interface PaymentState {
+    PaymentStatus status();
+    void authorize(Payment payment);
+    void capture(Payment payment);
+    void settle(Payment payment);
+    void refund(Payment payment);
+    void fail(Payment payment, String reason);
+}
+\`\`\`
+
+Püf noktası: tüm geçişleri varsayılan olarak "geçersiz" kabul eden bir taban sınıf. Somut durumlar yalnızca izin verdikleri geçişi override eder:
+
+\`\`\`java
+public abstract class AbstractPaymentState implements PaymentState {
+    @Override public void authorize(Payment p)      { throw illegal("authorize"); }
+    @Override public void capture(Payment p)        { throw illegal("capture"); }
+    @Override public void settle(Payment p)         { throw illegal("settle"); }
+    @Override public void refund(Payment p)         { throw illegal("refund"); }
+    @Override public void fail(Payment p, String r) { throw illegal("fail"); }
+
+    protected IllegalStateTransitionException illegal(String action) {
+        return new IllegalStateTransitionException(status(), action);
+    }
+}
+\`\`\`
+
+## Somut Durumlar
+
+Her durum sınıfı sadece kendi geçerli geçişlerini içerir — gerisi otomatik olarak yasaktır:
+
+\`\`\`java
+public final class AuthorizedState extends AbstractPaymentState {
+
+    public static final AuthorizedState INSTANCE = new AuthorizedState();
+    private AuthorizedState() {}
+
+    @Override public PaymentStatus status() { return PaymentStatus.AUTHORIZED; }
+
+    @Override public void capture(Payment p) {
+        p.transitionTo(CapturedState.INSTANCE);   // izin verilen geçiş
+    }
+    @Override public void fail(Payment p, String reason) {
+        p.markFailureReason(reason);
+        p.transitionTo(FailedState.INSTANCE);
+    }
+    // authorize/settle/refund override edilmedi -> AbstractState yasaklar
+}
+\`\`\`
+
+## Context: Payment
+
+Ödeme "nasıl" geçileceğini bilmez; niyeti o anki duruma yönlendirir:
+
+\`\`\`java
+public class Payment {
+    private PaymentState state = PendingState.INSTANCE;
+
+    public void authorize() { state.authorize(this); }
+    public void capture()   { state.capture(this); }
+    public void settle()    { state.settle(this); }
+    public void refund()    { state.refund(this); }
+
+    public void transitionTo(PaymentState newState) {
+        this.state = newState;
+        history.add(newState.status());   // geçiş geçmişini tut
+    }
+}
+\`\`\`
+
+## Geçiş Haritası
+
+\`\`\`
+PENDING --authorize--> AUTHORIZED --capture--> CAPTURED --settle--> SETTLED
+  |                        |                       |                   |
+  +--> FAILED              +--> FAILED             +------refund------> REFUNDED
+\`\`\`
+
+Geçersiz bir geçiş denendiğinde (örn. PENDING'ken \`capture\`), kararı context değil durum sınıfı verir ve \`IllegalStateTransitionException\` fırlatır. REST katmanında bu \`409 Conflict\`'e map edilir.
+
+## State vs. Enum + switch
+
+| | Enum + switch | State pattern |
+|---|---|---|
+| Yeni durum ekle | Tüm switch'leri güncelle | Yeni sınıf ekle |
+| Geçersiz geçiş | Elle kontrol, unutulabilir | Varsayılan olarak yasak |
+| İlgili mantık | Metotlara dağılır | Tek durum sınıfında toplanır |
+| Test | Tüm dallar | Her durum izole |
+
+## Ne Zaman Kullan?
+
+- Bir nesnenin davranışı durumuna göre köklü değişiyorsa
+- Geçişlerin sıkı kurallara bağlı olduğu akışlarda (ödeme, sipariş, onay süreci)
+- \`switch(status)\` blokları kodun her yerine yayılmaya başladıysa
+`
+  },
 ];
